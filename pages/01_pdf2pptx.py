@@ -4,6 +4,7 @@ from pptx import Presentation
 from pptx.util import Inches
 import io
 import tempfile
+from PIL import Image
 
 st.title("PDF to PPTX Converter 🔄")
 
@@ -13,7 +14,11 @@ if uploaded_file is not None:
     st.write("파일 변환 중...")
     
     # PDF를 이미지로 변환
-    images = convert_from_bytes(uploaded_file.getvalue())
+    try:
+        images = convert_from_bytes(uploaded_file.getvalue())
+    except Exception as e:
+        st.error(f"PDF 변환 중 오류 발생: {str(e)}")
+        st.stop()
     
     # 새 PowerPoint 프레젠테이션 생성
     prs = Presentation()
@@ -27,8 +32,19 @@ if uploaded_file is not None:
         
         # 이미지를 슬라이드에 추가
         left = top = Inches(0)
-        pic = slide.shapes.add_picture(io.BytesIO(image.tobytes()), left, top, 
-                                       width=prs.slide_width, height=prs.slide_height)
+        
+        # 임시 파일을 사용하여 이미지 저장
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as temp_file:
+            image.save(temp_file, format='PNG')
+            temp_file_path = temp_file.name
+        
+        try:
+            slide.shapes.add_picture(temp_file_path, left, top, 
+                                     width=prs.slide_width, 
+                                     height=prs.slide_height)
+        except Exception as e:
+            st.error(f"이미지 추가 중 오류 발생: {str(e)}")
+            continue
     
     # PPTX 파일 저장
     pptx_file = io.BytesIO()
