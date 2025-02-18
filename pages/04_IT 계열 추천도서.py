@@ -36,30 +36,82 @@ books = {
         "저자": "김진형",
         "요약": "인공지능의 현재와 미래, 그리고 우리 삶에 미칠 영향을 다룹니다.",
         "평점": "4.8/5"
-    }
-}
-
-st.title("IT 계열 진학 희망 고등학생을 위한 추천도서")
-
-# 드롭다운 메뉴로 책 선택
-selected_book = st.selectbox("책을 선택하세요:", list(books.keys()))
-
-# 선택된 책의 정보 표시
-if selected_book:
-    st.subheader(selected_book)
-    book_info = books[selected_book]
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.write(f"**출판연도:** {book_info['출판연도']}")
-        st.write(f"**출판사:** {book_info['출판사']}")
-        st.write(f"**저자:** {book_info['저자']}")
-    
-    with col2:
-        st.write(f"**평점:** {book_info['평점']}")
-    
-    st.write("**책 요약:**")
-    st.write(book_info['요약'])
-
-st.info("위 책들은 IT 기초, 프로그래밍, 인공지능 등 다양한 주제를 다루고 있습니다. 관심 있는 분야의 책을 선택해 자세히 알아보세요!")
+    },
+    "Between Humanities and the Digital": {
+        "출판연도": "2015",
+        "출판사": "MIT Press",
+        "저자": "Patrik Svensson, David Theo Goldberg",
+        "요약": "디지털 시대의 인문학과 기술의 접점을 탐구합니다.",
+        "평점": "4.2/5"
+    },
+    "Philosophy in Culture: A Cross-Cultural Perspective": {
+        "출판연도": "2016",
+        "출판사": "Springer",
+        "저자": "Mbih J. Tosam, Peter Takov",
+        "요약": "문화와 기술의 철학적 접근을 다양한 관점에서 살펴봅니다.",
+        "평점": "4.0/5"
+    },
+    "The Age of A.I.": {
+        "출판연도": "2021",
+        "출판사": "Little, Brown and Company",
+        "저자": "Henry Kissinger, Eric Schmidt, Daniel Huttenlocher",
+        "요약": "AI가 인류의 미래에 미칠 영향을 다각도로 분석합니다.",
+        "평점": "4.4/5"
+    },
+    "Everyday Chaos": {
+        "출판연도": "2019",
+        "출판사": "Harvard Business Review Press",
+        "저자": "David Weinberger",
+        "요약": "복잡성과 기술이 현대 사회에 미치는 영향을 탐구합니다.",
+        "평점": "4.3/5"
+    },
+    "You Are Not a Gadget": {
+        "출판연도": "2010",
+        "출판사": "Knopf",
+        "저자": "Jaron Lanier",
+        "요약": "디지털 기술이 인간성에 미치는 영향에 대한 비판적 시각을 제시합니다.",
+        "평점": "4.1/5"
+    },
+    "Alone Together": {
+        "출판연도": "2011",
+        "출판사": "Basic Books",
+        "저자": "Sherry Turkle",
+        "요약": "기술 발전이 인간 관계에 미치는 영향을 심도 있게 분석합니다.",
+        "평점": "4.2/5"
+    },
+    "Weapons of Math Destruction": {
+        "출판연도": "2016",
+        "출판사": "Crown",
+        "저자": "Cathy O'Neil",
+        "요약": "빅데이터와 알고리즘이 사회 불평등에 미치는 영향을 다룹니다.",
+        "평점": "4.5/5"
+    },
+    "Here Comes Everybody": {
+        "출판연도": "2008",
+        "출판사": "Penguin Press",
+        "저자": "Clay Shirky",
+        "요약": "인터넷이 가져온 사회적 조직의 변화를 탐구합니다.",
+        "평점": "4.3/5"
+    },
+    "The Myth of Artificial Intelligence": {
+        "출판연도": "2021",
+        "출판사": "Belknap Press",
+        "저자": "Erik J. Larson",
+        "요약": "AI의 현재 한계와 미래 가능성에 대한 비판적 분석을 제공합니다.",
+        "평점": "4.4/5"
+    },
+    "Business Meets the Humanities": {
+        "출판연도": "2023",
+        "출판사": "Springer",
+        "저자": "Martina Skrubbeltrang Mahnke 외",
+        "요약": "비즈니스와 인문학의 융합을 통한 새로운 가치 창출을 탐구합니다.",
+        "평점": "4.1/5"
+    },
+    "The Age of Algorithms": {
+        "출판연도": "2020",
+        "출판사": "Cambridge University Press",
+        "저자": "Serge Abiteboul, Gilles Dowek",
+        "요약": "알고리즘이 현대 사회에 미치는 영향을 종합적으로 분석합니다.",
+        "평점": "4.3/5"
+    },
+    "인공지능의 철학": {
