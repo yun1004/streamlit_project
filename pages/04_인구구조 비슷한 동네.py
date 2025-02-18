@@ -66,7 +66,7 @@ if df is not None:
     most_similar_area_data = df[df['행정구역'] == most_similar_area_name][age_cols]
 
     # 인구 구조 데이터 정제 함수
-    def get_population_data(area_data, area_name):
+    def get_population_data(area_data, area_name, age_cols):  # age_cols를 인자로 받음
         plot_df = pd.DataFrame({
             '연령': age_cols,
             '인구수': area_data.iloc[0].values,
@@ -76,8 +76,8 @@ if df is not None:
         return plot_df
 
     # 데이터 준비
-    selected_plot_df = get_population_data(selected_area_data, selected_area)
-    similar_plot_df = get_population_data(most_similar_area_data, most_similar_area_name)
+    selected_plot_df = get_population_data(selected_area_data, selected_area, age_cols)  # age_cols를 인자로 전달
+    similar_plot_df = get_population_data(most_similar_area_data, most_similar_area_name, age_cols)  # age_cols를 인자로 전달
 
     # 그래프 생성을 위한 데이터 병합
     combined_df = pd.concat([selected_plot_df, similar_plot_df])
