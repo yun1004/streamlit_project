@@ -23,13 +23,14 @@ selected_area = st.selectbox(
 # 선택된 지역의 데이터 필터링
 filtered_df = df[df['행정구역'] == selected_area]
 
-# 연령별 인구수 데이터 추출
-age_columns = [col for col in df.columns if '2024년11월_계_' in col and '세' in col]
+# 연령별 인구수 데이터 추출 (정규 표현식 사용)
+import re
+age_columns = [col for col in df.columns if re.match(r'2024년11월_계_\d+세', col)]
 age_data = filtered_df[age_columns].iloc[0]
 
 # 데이터프레임 생성 (Plotly Express 호환용)
 plot_df = pd.DataFrame({'연령': age_data.index, '인구수': age_data.values})
-plot_df['연령'] = plot_df['연령'].str.replace('2024년11월_계_', '').str.replace('세', '').str.replace('_', ' ')
+plot_df['연령'] = plot_df['연령'].str.replace('2024년11월_계_', '').str.replace('세', '')
 
 # 막대 그래프 생성
 fig = px.bar(plot_df, x='연령', y='인구수', title=f'{selected_area} 인구 구조')
