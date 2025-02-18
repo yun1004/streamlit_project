@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
 # 데이터 불러오기 및 오류 처리
 @st.cache_data
@@ -38,19 +39,23 @@ if df is not None:
 
     # 데이터 타입 변경 및 NaN 처리
     df['총인구수'] = pd.to_numeric(df[total_population_col], errors='coerce')
+
+    # 인구 비율 계산을 위한 NaN 또는 inf 값 처리
     for col in age_cols:
         df[col] = pd.to_numeric(df[col], errors='coerce')
-    df = df.dropna(subset=age_cols + ['총인구수'])
 
-    # 인구 비율 계산 함수
-    def calculate_population_ratios(data):
-        return data[age_cols].div(data['총인구수'], axis=0) * 100
+    # 총인구수가 0인 지역 제거 및 NaN 값 처리
+    df = df[df['총인구수'] != 0].dropna(subset=age_cols + ['총인구수'])
 
-    # 전체 지역의 인구 비율 계산
-    population_ratio_data = calculate_population_ratios(df)
+    # 인구 비율 계산
+    population_ratio_data = df[age_cols].div(df['총인구수'], axis=0) * 100
 
     # 선택된 지역의 인구 비율 데이터 추출
     selected_area_ratio_data = population_ratio_data[df['행정구역'] == selected_area]
+
+    # 데이터에 NaN 또는 inf 값이 있는지 확인하고 처리
+    population_ratio_data = population_ratio_data.replace([np.inf, -np.inf], np.nan).fillna(0)
+    selected_area_ratio_data = selected_area_ratio_data.replace([np.inf, -np.inf], np.nan).fillna(0)
 
     # 코사인 유사도 계산
     similarity_scores = cosine_similarity(selected_area_ratio_data, population_ratio_data)
