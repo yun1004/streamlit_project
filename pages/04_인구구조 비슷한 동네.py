@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
 
 # 데이터 불러오기 및 오류 처리
 @st.cache_data
@@ -22,7 +21,7 @@ df = load_data()
 if df is not None:
     # Streamlit 앱 제목 설정
     st.title("인구 구조 유사도 분석 🏘️")
-    st.subheader("선택한 지역과 가장 비슷한 인구 구조를 가진 동네 비교")
+    st.subheader("선택한 지역과 인구 비율이 가장 비슷한 동네 비교")
 
     # 지역 선택을 위한 selectbox 생성
     available_areas = df['행정구역'].unique()
@@ -34,20 +33,23 @@ if df is not None:
     # 연령대별 인구수 컬럼 추출
     age_cols = [col for col in df.columns if '2024년11월_계_' in col and '세' in col]
 
-    # 선택된 지역의 인구 구조 데이터 추출
-    selected_area_data = df[df['행정구역'] == selected_area][age_cols]
-
     # 총 인구수 컬럼 추출
     total_population_col = '2024년11월_계_총인구수'
 
-    # 각 연령대별 인구 비율 계산
-    population_ratio_data = df[age_cols].div(df[total_population_col], axis=0) * 100
+    # 인구 비율 계산
+    df['총인구수'] = pd.to_numeric(df['2024년11월_계_총인구수'], errors='coerce')
+
+    # 인구 비율 계산 시 NaN 또는 inf 값을 처리
+    for col in age_cols:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+    df = df.dropna(subset=age_cols + ['총인구수'])
+
+    # 인구 비율 계산
+    population_ratio_data = df[age_cols].div(df['총인구수'], axis=0) * 100
+    population_ratio_data.fillna(0, inplace=True)
 
     # 선택된 지역의 인구 비율 데이터 추출
     selected_area_ratio_data = population_ratio_data[df['행정구역'] == selected_area]
-
-    # 유사도 계산을 위한 데이터 준비
-    population_ratio_data = population_ratio_data.fillna(0)  # NaN 값을 0으로 채우기
 
     # 코사인 유사도 계산
     similarity_scores = cosine_similarity(selected_area_ratio_data, population_ratio_data)
