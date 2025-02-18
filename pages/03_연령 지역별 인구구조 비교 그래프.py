@@ -58,3 +58,50 @@ st.plotly_chart(fig, use_container_width=True)
 st.subheader("결과 요약 📝")
 st.write(f"**{selected_age}** 비율이 가장 높은 지역: **{max_ratio_area['행정구역']}** ({max_ratio_area['비율']:.2f}%)")
 st.write(f"**{selected_age}** 비율이 가장 낮은 지역: **{min_ratio_area['행정구역']}** ({min_ratio_area['비율']:.2f}%)")
+
+# 추가 프로젝트 제안
+st.subheader("✨ 추가 프로젝트 아이디어 ✨")
+st.write("이 데이터를 활용하여 다음과 같은 프로젝트를 진행해 볼 수 있어요:")
+
+# 프로젝트 아이디어 1: 연령대별 인구 피라미드 그리기
+st.markdown("""
+1.  **연령대별 인구 피라미드 그리기**:
+    *   지역을 선택하고, 해당 지역의 연령별 인구 피라미드를 그려 보세요.
+    *   인구 피라미드를 통해 지역의 인구 구조를 한눈에 파악할 수 있습니다.
+""")
+
+# 프로젝트 아이디어 2: 특정 연령대의 인구 변화 추이 분석
+st.markdown("""
+2.  **특정 연령대의 인구 변화 추이 분석**:
+    *   특정 연령대를 선택하고, 해당 연령대의 인구수가 시간이 지남에 따라 어떻게 변화하는지 선 그래프로 나타내 보세요.
+    *   인구 변화 추이를 통해 지역의 변화를 예측해 볼 수 있습니다.
+""")
+
+# 프로젝트 아이디어 3: 지역별 인구 구조 비교 분석
+st.markdown("""
+3.  **지역별 인구 구조 비교 분석**:
+    *   여러 지역을 선택하고, 각 지역의 인구 구조를 비교하는 막대 그래프나 파이 차트를 그려 보세요.
+    *   지역별 인구 구조의 차이점을 분석하고, 그 이유를 추론해 볼 수 있습니다.
+""")
+
+# 추가 코딩 예시 (인구 피라미드 그리기)
+if st.checkbox("인구 피라미드 그리기 예시 보기"):
+    selected_area_pyramid = st.selectbox(
+        "인구 피라미드를 보고 싶은 동네를 선택하세요:",
+        df['행정구역'].unique()
+    )
+
+    pyramid_df = df[df['행정구역'] == selected_area_pyramid].copy()
+    age_cols = [col for col in pyramid_df.columns if '2024년11월_계_' in col and '세' in col]
+    pyramid_data = pyramid_df[age_cols].iloc[0].to_dict()
+
+    # 성별 데이터가 없으므로, 전체 인구를 사용
+    age_labels = [col.replace('2024년11월_계_', '').replace('세', '').replace('_', ' ') for col in age_cols]
+    population = list(pyramid_df[age_cols].iloc[0].values)
+
+    pyramid_data = pd.DataFrame({'연령': age_labels, '인구수': population})
+
+    fig_pyramid = px.bar(pyramid_data, x='인구수', y='연령', orientation='h',
+                         title=f'{selected_area_pyramid} 인구 피라미드',
+                         labels={'인구수': '인구 수', '연령': '연령 (세)'})
+    st.plotly_chart(fig_pyramid, use_container_width=True)
