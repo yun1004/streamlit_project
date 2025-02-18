@@ -73,6 +73,11 @@ if df is not None:
 
     # 인구 구조 데이터 정제 함수 (인구 비율 사용)
     def get_population_data(area_data, area_name, age_cols):
+        # area_data가 비어있는지 확인
+        if area_data.empty:
+            st.error(f"'{area_name}' 지역의 인구 데이터가 없습니다.")
+            return None
+
         # 해당 지역의 총 인구수를 가져옴
         total_population_series = df[df['행정구역'] == area_name]['총인구수']
 
