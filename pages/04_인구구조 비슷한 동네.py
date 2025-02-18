@@ -36,31 +36,24 @@ if df is not None:
     # 총 인구수 컬럼 추출
     total_population_col = '2024년11월_계_총인구수'
 
-    # 인구 비율 계산을 위한 데이터 타입 변경 및 NaN 처리
+    # 데이터 타입 변경 및 NaN 처리
     df['총인구수'] = pd.to_numeric(df[total_population_col], errors='coerce')
     for col in age_cols:
         df[col] = pd.to_numeric(df[col], errors='coerce')
     df = df.dropna(subset=age_cols + ['총인구수'])
 
-    # 선택된 지역의 인구 구조 데이터 추출 및 오류 처리
-    try:
-        selected_area_data = df[df['행정구역'] == selected_area][age_cols]
-        if selected_area_data.empty:
-            st.error(f"선택한 지역 '{selected_area}'에 대한 데이터를 찾을 수 없습니다.")
-            st.stop()
-    except KeyError as e:
-        st.error(f"오류 발생: {e}. CSV 파일에 필요한 컬럼이 있는지 확인하세요.")
-        st.stop()
-
-    # 인구 비율 계산
-    selected_area_ratio = selected_area_data.div(df[df['행정구역'] == selected_area]['총인구수'].values[0], axis=1) * 100
+    # 인구 비율 계산 함수
+    def calculate_population_ratios(data):
+        return data[age_cols].div(data['총인구수'], axis=0) * 100
 
     # 전체 지역의 인구 비율 계산
-    population_ratio_data = df[age_cols].div(df['총인구수'], axis=0) * 100
-    population_ratio_data = population_ratio_data.fillna(0)
+    population_ratio_data = calculate_population_ratios(df)
+
+    # 선택된 지역의 인구 비율 데이터 추출
+    selected_area_ratio_data = population_ratio_data[df['행정구역'] == selected_area]
 
     # 코사인 유사도 계산
-    similarity_scores = cosine_similarity(selected_area_ratio, population_ratio_data)
+    similarity_scores = cosine_similarity(selected_area_ratio_data, population_ratio_data)
 
     # 유사도 점수 DataFrame 생성
     similarity_df = pd.DataFrame(similarity_scores.T, index=df['행정구역'], columns=['유사도'])
@@ -73,43 +66,15 @@ if df is not None:
     most_similar_area_name = most_similar_area.name
     most_similar_area_data = df[df['행정구역'] == most_similar_area_name][age_cols]
 
-    # 인구 구조 데이터 정제 함수
+    # 인구 구조 데이터 정제 함수 (인구 비율 사용)
     def get_population_data(area_data, area_name, age_cols):
+        # 해당 지역의 총 인구수를 가져옴
+        total_population = df[df['행정구역'] == area_name]['총인구수'].values[0]
+
+        # 연령별 인구 비율 계산
+        population_ratios = area_data[age_cols].iloc[0].values / total_population * 100
+
         plot_df = pd.DataFrame({
             '연령': age_cols,
-            '인구수': area_data.iloc[0].values,
+            '인구 비율': population_ratios,  # 인구수 대신 비율 사용
             '지역': area_name
-        })
-        plot_df['연령'] = plot_df['연령'].str.replace('2024년11월_계_', '').str.replace('세', '').str.replace('_', ' ')
-        return plot_df
-
-    # 데이터 준비
-    selected_plot_df = get_population_data(selected_area_data, selected_area, age_cols)
-    similar_plot_df = get_population_data(most_similar_area_data, most_similar_area_name, age_cols)
-
-    # 그래프 생성을 위한 데이터 병합
-    combined_df = pd.concat([selected_plot_df, similar_plot_df])
-
-    # 선 그래프 생성
-    fig = px.line(combined_df, x='연령', y='인구수', color='지역',
-                  title=f"{selected_area}와 가장 유사한 {most_similar_area_name} 인구 구조 비교")
-    st.plotly_chart(fig, use_container_width=True)
-
-    # 결과 요약
-    st.subheader("결과 요약 📝")
-    st.write(f"**{selected_area}**와 가장 유사한 지역: **{most_similar_area_name}** (유사도: {most_similar_area['유사도']:.4f})")
-
-    # 추가 설명
-    st.markdown("""
-    **인구 구조 분석:**
-
-    *   선택한 지역과 가장 유사한 지역의 인구 구조를 비교해 보세요.
-    *   두 지역의 연령별 인구 분포가 어떻게 다른지 확인할 수 있습니다.
-
-    **프로젝트 더 알아보기:**
-
-    *   인구 구조 유사도를 활용하여, 비슷한 특징을 가진 지역들을 그룹으로 묶어볼 수 있습니다.
-    *   지역 간 유사성을 기반으로, 새로운 상권이나 시설을 배치하는 아이디어를 생각해 볼 수 있습니다.
-    """)
-else:
-    st.warning("데이터를 불러오는 데 실패했습니다. CSV 파일과 경로를 확인해주세요.")
