@@ -37,11 +37,20 @@ if df is not None:
     # 선택된 지역의 인구 구조 데이터 추출
     selected_area_data = df[df['행정구역'] == selected_area][age_cols]
 
+    # 총 인구수 컬럼 추출
+    total_population_col = '2024년11월_계_총인구수'
+
+    # 각 연령대별 인구 비율 계산
+    population_ratio_data = df[age_cols].div(df[total_population_col], axis=0) * 100
+
+    # 선택된 지역의 인구 비율 데이터 추출
+    selected_area_ratio_data = population_ratio_data[df['행정구역'] == selected_area]
+
     # 유사도 계산을 위한 데이터 준비
-    population_data = df[age_cols].fillna(0) # NaN 값을 0으로 채우기
+    population_ratio_data = population_ratio_data.fillna(0)  # NaN 값을 0으로 채우기
 
     # 코사인 유사도 계산
-    similarity_scores = cosine_similarity(selected_area_data, population_data)
+    similarity_scores = cosine_similarity(selected_area_ratio_data, population_ratio_data)
 
     # 유사도 점수 DataFrame 생성
     similarity_df = pd.DataFrame(similarity_scores.T, index=df['행정구역'], columns=['유사도'])
@@ -82,12 +91,12 @@ if df is not None:
 
     # 추가 설명
     st.markdown("""
-    **[인구 구조 분석](pplx://action/followup):**
+    **인구 구조 분석:**
 
     *   선택한 지역과 가장 유사한 지역의 인구 구조를 비교해 보세요.
     *   두 지역의 연령별 인구 분포가 어떻게 다른지 확인할 수 있습니다.
 
-    **[프로젝트 더 알아보기](pplx://action/followup):**
+    **프로젝트 더 알아보기:**
 
     *   인구 구조 유사도를 활용하여, 비슷한 특징을 가진 지역들을 그룹으로 묶어볼 수 있습니다.
     *   지역 간 유사성을 기반으로, 새로운 상권이나 시설을 배치하는 아이디어를 생각해 볼 수 있습니다.
