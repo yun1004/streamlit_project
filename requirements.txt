@@ -3,3 +3,5 @@ pdf2image
 python-pptx
 Pillow
 koreanize-matplotlib
+pandas
+plotly.express
