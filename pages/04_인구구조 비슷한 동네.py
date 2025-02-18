@@ -36,23 +36,31 @@ if df is not None:
     # 총 인구수 컬럼 추출
     total_population_col = '2024년11월_계_총인구수'
 
-    # 인구 비율 계산
-    df['총인구수'] = pd.to_numeric(df['2024년11월_계_총인구수'], errors='coerce')
-
-    # 인구 비율 계산 시 NaN 또는 inf 값을 처리
+    # 인구 비율 계산을 위한 데이터 타입 변경 및 NaN 처리
+    df['총인구수'] = pd.to_numeric(df[total_population_col], errors='coerce')
     for col in age_cols:
         df[col] = pd.to_numeric(df[col], errors='coerce')
     df = df.dropna(subset=age_cols + ['총인구수'])
 
-    # 인구 비율 계산
-    population_ratio_data = df[age_cols].div(df['총인구수'], axis=0) * 100
-    population_ratio_data.fillna(0, inplace=True)
+    # 선택된 지역의 인구 구조 데이터 추출 및 오류 처리
+    try:
+        selected_area_data = df[df['행정구역'] == selected_area][age_cols]
+        if selected_area_data.empty:
+            st.error(f"선택한 지역 '{selected_area}'에 대한 데이터를 찾을 수 없습니다.")
+            st.stop()
+    except KeyError as e:
+        st.error(f"오류 발생: {e}. CSV 파일에 필요한 컬럼이 있는지 확인하세요.")
+        st.stop()
 
-    # 선택된 지역의 인구 비율 데이터 추출
-    selected_area_ratio_data = population_ratio_data[df['행정구역'] == selected_area]
+    # 인구 비율 계산
+    selected_area_ratio = selected_area_data.div(df[df['행정구역'] == selected_area]['총인구수'].values[0], axis=1) * 100
+
+    # 전체 지역의 인구 비율 계산
+    population_ratio_data = df[age_cols].div(df['총인구수'], axis=0) * 100
+    population_ratio_data = population_ratio_data.fillna(0)
 
     # 코사인 유사도 계산
-    similarity_scores = cosine_similarity(selected_area_ratio_data, population_ratio_data)
+    similarity_scores = cosine_similarity(selected_area_ratio, population_ratio_data)
 
     # 유사도 점수 DataFrame 생성
     similarity_df = pd.DataFrame(similarity_scores.T, index=df['행정구역'], columns=['유사도'])
@@ -66,7 +74,7 @@ if df is not None:
     most_similar_area_data = df[df['행정구역'] == most_similar_area_name][age_cols]
 
     # 인구 구조 데이터 정제 함수
-    def get_population_data(area_data, area_name, age_cols):  # age_cols를 인자로 받음
+    def get_population_data(area_data, area_name, age_cols):
         plot_df = pd.DataFrame({
             '연령': age_cols,
             '인구수': area_data.iloc[0].values,
@@ -76,8 +84,8 @@ if df is not None:
         return plot_df
 
     # 데이터 준비
-    selected_plot_df = get_population_data(selected_area_data, selected_area, age_cols)  # age_cols를 인자로 전달
-    similar_plot_df = get_population_data(most_similar_area_data, most_similar_area_name, age_cols)  # age_cols를 인자로 전달
+    selected_plot_df = get_population_data(selected_area_data, selected_area, age_cols)
+    similar_plot_df = get_population_data(most_similar_area_data, most_similar_area_name, age_cols)
 
     # 그래프 생성을 위한 데이터 병합
     combined_df = pd.concat([selected_plot_df, similar_plot_df])
