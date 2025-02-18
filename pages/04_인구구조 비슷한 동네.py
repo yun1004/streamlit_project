@@ -74,10 +74,17 @@ if df is not None:
     # 인구 구조 데이터 정제 함수 (인구 비율 사용)
     def get_population_data(area_data, area_name, age_cols):
         # 해당 지역의 총 인구수를 가져옴
-        total_population = df[df['행정구역'] == area_name]['총인구수'].values[0]
+        total_population_series = df[df['행정구역'] == area_name]['총인구수']
+
+        # 총 인구수가 없는 경우 오류 처리
+        if total_population_series.empty:
+            st.error(f"'{area_name}' 지역의 총 인구수 데이터를 찾을 수 없습니다.")
+            return None
+
+        total_population = total_population_series.values[0]
 
         # 연령별 인구 비율 계산
-        population_ratios = area_data[age_cols].iloc[0].values / total_population * 100
+        population_ratios = area_data.iloc[0].values / total_population * 100
 
         plot_df = pd.DataFrame({
             '연령': age_cols,
@@ -92,28 +99,31 @@ if df is not None:
     similar_plot_df = get_population_data(most_similar_area_data, most_similar_area_name, age_cols)
 
     # 그래프 생성을 위한 데이터 병합
-    combined_df = pd.concat([selected_plot_df, similar_plot_df])
+    if selected_plot_df is not None and similar_plot_df is not None:
+        combined_df = pd.concat([selected_plot_df, similar_plot_df])
 
-    # 선 그래프 생성 (y축을 '인구 비율'로 변경)
-    fig = px.line(combined_df, x='연령', y='인구 비율', color='지역',
-                  title=f"{selected_area}와 가장 유사한 {most_similar_area_name} 인구 구조 비교 (인구 비율 기준)")
-    st.plotly_chart(fig, use_container_width=True)
+        # 선 그래프 생성 (y축을 '인구 비율'로 변경)
+        fig = px.line(combined_df, x='연령', y='인구 비율', color='지역',
+                      title=f"{selected_area}와 가장 유사한 {most_similar_area_name} 인구 구조 비교 (인구 비율 기준)")
+        st.plotly_chart(fig, use_container_width=True)
 
-    # 결과 요약
-    st.subheader("결과 요약 📝")
-    st.write(f"**{selected_area}**와 가장 유사한 지역: **{most_similar_area_name}** (유사도: {most_similar_area['유사도']:.4f})")
+        # 결과 요약
+        st.subheader("결과 요약 📝")
+        st.write(f"**{selected_area}**와 가장 유사한 지역: **{most_similar_area_name}** (유사도: {most_similar_area['유사도']:.4f})")
 
-    # 추가 설명
-    st.markdown("""
-    **인구 구조 분석:**
+        # 추가 설명
+        st.markdown("""
+        **인구 구조 분석:**
 
-    *   선택한 지역과 가장 유사한 지역의 인구 구조를 비교해 보세요.
-    *   두 지역의 연령별 인구 분포 비율이 어떻게 다른지 확인할 수 있습니다.
+        *   선택한 지역과 가장 유사한 지역의 인구 구조를 비교해 보세요.
+        *   두 지역의 연령별 인구 분포 비율이 어떻게 다른지 확인할 수 있습니다.
 
-    **프로젝트 더 알아보기:**
+        **프로젝트 더 알아보기:**
 
-    *   인구 구조 유사도를 활용하여, 비슷한 특징을 가진 지역들을 그룹으로 묶어볼 수 있습니다.
-    *   지역 간 유사성을 기반으로, 새로운 상권이나 시설을 배치하는 아이디어를 생각해 볼 수 있습니다.
-    """)
+        *   인구 구조 유사도를 활용하여, 비슷한 특징을 가진 지역들을 그룹으로 묶어볼 수 있습니다.
+        *   지역 간 유사성을 기반으로, 새로운 상권이나 시설을 배치하는 아이디어를 생각해 볼 수 있습니다.
+        """)
+    else:
+        st.warning("데이터를 준비하는 데 실패했습니다. 선택한 지역의 데이터가 CSV 파일에 있는지 확인해주세요.")
 else:
     st.warning("데이터를 불러오는 데 실패했습니다. CSV 파일과 경로를 확인해주세요.")
