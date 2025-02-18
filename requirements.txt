@@ -2,4 +2,5 @@ streamlit
 pdf2image
 python-pptx
 Pillow
+poppler-utils
 koreanize-matplotlib
