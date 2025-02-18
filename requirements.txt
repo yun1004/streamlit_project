@@ -5,3 +5,4 @@ Pillow
 koreanize-matplotlib
 pandas
 plotly.express
+scikit-learn
