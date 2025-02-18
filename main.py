@@ -1,47 +1,46 @@
 import streamlit as st
+from pdf2image import convert_from_bytes
+from pptx import Presentation
+from pptx.util import Inches
+import io
+import tempfile
 
-st.title("🔮 MBTI 직업 & 궁합 분석기 🔮")
+st.title("PDF to PPTX Converter 🔄")
 
-mbti_types = ["ISTJ", "ISFJ", "INFJ", "INTJ", "ISTP", "ISFP", "INFP", "INTP", 
-              "ESTP", "ESFP", "ENFP", "ENTP", "ESTJ", "ESFJ", "ENFJ", "ENTJ"]
+uploaded_file = st.file_uploader("PDF 파일을 업로드하세요", type="pdf")
 
-selected_mbti = st.selectbox("당신의 MBTI를 선택하세요:", mbti_types)
-
-def get_mbti_info(mbti):
-    info = {
-        "ISTJ": {
-            "job": "회계사 💼, 법률가 ⚖️, 경찰관 👮‍♂️",
-            "match": "ESFP 🎭, ESTP 🏄‍♂️"
-        },
-        "ENFP": {
-            "job": "작가 ✍️, 배우 🎭, 심리상담사 🧠",
-            "match": "INTJ 🧠, INFJ 🔮"
-        },
-        # 나머지 MBTI 유형들에 대한 정보도 이와 같이 추가...
-    }
-    return info.get(mbti, {"job": "정보 없음", "match": "정보 없음"})
-
-if st.button("분석하기 🚀"):
-    info = get_mbti_info(selected_mbti)
-    st.write(f"## {selected_mbti}님을 위한 분석 결과 🌟")
-    st.write(f"### 추천 직업 💼")
-    st.write(info["job"])
-    st.write(f"### 잘 맞는 MBTI 💖")
-    st.write(info["match"])
-    st.write(f"""
-    {selected_mbti}님! 당신은 독특한 성격의 소유자예요. 🌈 
-    추천 직업들을 살펴보면, 당신의 강점을 잘 살릴 수 있는 분야들이죠. 
-    이 직업들에서 당신의 {selected_mbti} 특성이 빛을 발할 거예요! ✨
-
-    그리고 잘 맞는 MBTI 유형들과 만나면, 마치 퍼즐 조각이 맞춰지는 것처럼 
-    환상의 팀워크를 이룰 수 있어요. 🧩 서로의 장단점을 보완하며 
-    더 나은 결과를 만들어낼 수 있죠.
-
-    하지만 기억하세요, 이건 단순한 가이드일 뿐이에요. 
-    당신의 진정한 잠재력은 MBTI의 경계를 넘어서는 법이죠. 
-    항상 새로운 도전을 두려워하지 마세요. 
-    당신만의 특별한 재능으로 세상을 놀라게 할 준비가 되었나요? 🚀🌟
-    """)
-
-st.write("---")
-st.write("© 2025 MBTI 분석기 | 당신의 잠재력을 발견하세요! 🔍✨")
+if uploaded_file is not None:
+    st.write("파일 변환 중...")
+    
+    # PDF를 이미지로 변환
+    images = convert_from_bytes(uploaded_file.getvalue())
+    
+    # 새 PowerPoint 프레젠테이션 생성
+    prs = Presentation()
+    
+    # PDF의 첫 페이지 크기로 슬라이드 크기 설정
+    prs.slide_width = Inches(images[0].width / 96)
+    prs.slide_height = Inches(images[0].height / 96)
+    
+    for image in images:
+        slide = prs.slides.add_slide(prs.slide_layouts[6])  # 빈 슬라이드 레이아웃
+        
+        # 이미지를 슬라이드에 추가
+        left = top = Inches(0)
+        pic = slide.shapes.add_picture(io.BytesIO(image.tobytes()), left, top, 
+                                       width=prs.slide_width, height=prs.slide_height)
+    
+    # PPTX 파일 저장
+    pptx_file = io.BytesIO()
+    prs.save(pptx_file)
+    pptx_file.seek(0)
+    
+    st.success("변환 완료!")
+    
+    # 다운로드 버튼 생성
+    st.download_button(
+        label="PPTX 파일 다운로드",
+        data=pptx_file,
+        file_name="converted_presentation.pptx",
+        mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
+    )
