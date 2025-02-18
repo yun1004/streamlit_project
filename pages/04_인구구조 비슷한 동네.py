@@ -78,3 +78,37 @@ if df is not None:
             '연령': age_cols,
             '인구 비율': population_ratios,  # 인구수 대신 비율 사용
             '지역': area_name
+        })
+        plot_df['연령'] = plot_df['연령'].str.replace('2024년11월_계_', '').str.replace('세', '').str.replace('_', ' ')
+        return plot_df
+
+    # 데이터 준비
+    selected_plot_df = get_population_data(selected_area_data, selected_area, age_cols)
+    similar_plot_df = get_population_data(most_similar_area_data, most_similar_area_name, age_cols)
+
+    # 그래프 생성을 위한 데이터 병합
+    combined_df = pd.concat([selected_plot_df, similar_plot_df])
+
+    # 선 그래프 생성 (y축을 '인구 비율'로 변경)
+    fig = px.line(combined_df, x='연령', y='인구 비율', color='지역',
+                  title=f"{selected_area}와 가장 유사한 {most_similar_area_name} 인구 구조 비교 (인구 비율 기준)")
+    st.plotly_chart(fig, use_container_width=True)
+
+    # 결과 요약
+    st.subheader("결과 요약 📝")
+    st.write(f"**{selected_area}**와 가장 유사한 지역: **{most_similar_area_name}** (유사도: {most_similar_area['유사도']:.4f})")
+
+    # 추가 설명
+    st.markdown("""
+    **인구 구조 분석:**
+
+    *   선택한 지역과 가장 유사한 지역의 인구 구조를 비교해 보세요.
+    *   두 지역의 연령별 인구 분포 비율이 어떻게 다른지 확인할 수 있습니다.
+
+    **프로젝트 더 알아보기:**
+
+    *   인구 구조 유사도를 활용하여, 비슷한 특징을 가진 지역들을 그룹으로 묶어볼 수 있습니다.
+    *   지역 간 유사성을 기반으로, 새로운 상권이나 시설을 배치하는 아이디어를 생각해 볼 수 있습니다.
+    """)
+else:
+    st.warning("데이터를 불러오는 데 실패했습니다. CSV 파일과 경로를 확인해주세요.")
